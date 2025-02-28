@@ -33,14 +33,20 @@ class Database:
             )
             conn.commit()
 
+    def get_products(self):
+        with sqlite3.connect(self.path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT name_product, category, size, price, product_id, photo FROM products")
+            return cursor.fetchall()
 
-def get_db_connection():
-    conn = sqlite3.connect('db/products.sqlite3')
-    conn.row_factory = sqlite3.Row
-    return conn
-
-def fetch_all_products():
-    conn = get_db_connection()
-    products = conn.execute("SELECT * FROM products").fetchall()
-    conn.close()
-    return products
+    def add_order(self, data: dict):
+        with sqlite3.connect(self.path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                '''
+                INSERT INTO orders (product_id, size, quantity, phone) 
+                VALUES (?, ?, ?, ?)
+                ''',
+                (data['product_id'], data['size'], data['quantity'], data['phone'])
+            )
+            conn.commit()

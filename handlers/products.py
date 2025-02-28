@@ -6,15 +6,15 @@ async def show_products(message: types.Message):
     products = database.get_products()
 
     if not products:
-        await message.answer("Товары пока не добавлены!")
+        await message.answer("Товары не найдены")
         return
 
     for product in products:
-        name, category, size, price, product_id, photo = product
-        text = (f"{name}\n"
+        name_product, category, size, price, product_id, photo = product
+        text = (f"{name_product}\n"
                 f"Категория: {category}\n"
                 f"Размер: {size}\n"
-                f"Цена: {price} руб.\n"
+                f"Цена: {price} \n"
                 f"Артикул: {product_id}")
 
         if photo:
