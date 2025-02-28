@@ -47,6 +47,6 @@ class Database:
                 INSERT INTO orders (product_id, size, quantity, phone) 
                 VALUES (?, ?, ?, ?)
                 ''',
-                (data['product_id'], data['size'], data['quantity'], data['phone'])
+                (data['product_id'], data['size'], data['quantity'], data['number'])
             )
             conn.commit()

@@ -1,7 +1,7 @@
 import asyncio
 from handlers import (
     start ,
-#     random ,
+     order,
     info,
 #     review_dialog,
     store_fsm,
@@ -19,7 +19,7 @@ async def main():
     database.create_tables()
     store_fsm.register_handlers(dp)
     products.register_handlers(dp)
-    # edit_products.register_handlers(dp)
+    order.register_handlers(dp)
 
     await dp.start_polling()
     # await create_tables()

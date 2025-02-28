@@ -3,19 +3,24 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
 
-from bot_config import STAFF, bot
+from bot_config import database , STAFF
+
+
+# from db import main_db
+
 
 class OrderFSM(StatesGroup):
     product_id = State()
     size = State()
     quantity = State()
-    contact = State()
+    number = State()
     submit = State()
+
 
 
 async def start_fsm_order(message: types.Message):
     await OrderFSM.product_id.set()
-    await message.answer("Введите артикул товара: ")
+    await message.answer('Введите артикул товара: ')
 
 
 async def load_product_id(message: types.Message, state: FSMContext):
@@ -23,7 +28,7 @@ async def load_product_id(message: types.Message, state: FSMContext):
         data['product_id'] = message.text
 
     await OrderFSM.next()
-    await message.answer("Введите размер товара: ")
+    await message.answer('Отправьте размер товара:')
 
 
 async def load_size(message: types.Message, state: FSMContext):
@@ -31,44 +36,42 @@ async def load_size(message: types.Message, state: FSMContext):
         data['size'] = message.text
 
     await OrderFSM.next()
-    await message.answer("Введите кол-во товара: ")
+    await message.answer('Кол-во товара:')
 
 
 async def load_quantity(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        data['contact'] = message.text
+        data['quantity'] = message.text
 
     await OrderFSM.next()
-    await message.answer("Введите свои контактные данные (номер телефона): ")
+    await message.answer('Введите номер телефона:')
 
 
-async def load_contact(message: types.Message, state: FSMContext):
+async def load_number(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        data['contact'] = message.text
+        data['number'] = message.text
 
-    await OrderFSM.next()
-    await message.answer("Верны ли данные ?: ")
-    await message.answer(f'Артикул - {data["product_id"]}\n'          
-                         f'Размер - {data["size"]}\n'
-                         f'Кол-во - {data["quantity"]}\n'
-                         f'Кон-е данные (тел.) - {data["contact"]}')
+    await OrderFSM.submit.set()
+    await message.answer('Верный ли данные ?'
+                                       f'Артикул - {data["product_id"]}\n'
+                                       f'Размер - {data["size"]}\n'
+                                       f'Кол-во - {data["quantity"]}\n'
+                                       f'Номер - {data["number"]}\n'
+                                       )
 
 async def submit_load(message: types.Message, state: FSMContext):
-    if message.text.lower() == 'да':
+    if message.text == 'да':
         async with state.proxy() as data:
-            for admin in STAFF:
-                await bot.send_message(chat_id=admin, text=f'Артикул - {data["product_id"]}\n'          
-                                                           f'Размер - {data["size"]}\n'
-                                                           f'Кол-во - {data["quantity"]}\n'
-                                                           f'Телефон - {data["contact"]}')
-
-            await state.finish()
-
-    elif message.text.lower() == 'нет':
-        await message.answer('отменено')
+            database.add_order(data)
+            await message.answer('Ваши данные в базе!')
+        await state.finish()
+    elif message.text == 'нет':
+        await message.answer('Хорошо, отменено!')
+        await state.finish()
 
     else:
         await message.answer('Выберите да или нет')
+
 
 async def cancel_fsm(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
@@ -85,5 +88,5 @@ def register_handlers(dp: Dispatcher):
     dp.register_message_handler(load_product_id, state=OrderFSM.product_id)
     dp.register_message_handler(load_size, state=OrderFSM.size)
     dp.register_message_handler(load_quantity, state=OrderFSM.quantity)
-    dp.register_message_handler(load_contact, state=OrderFSM.contact)
+    dp.register_message_handler(load_number, state=OrderFSM.number)
     dp.register_message_handler(submit_load, state=OrderFSM.submit)
